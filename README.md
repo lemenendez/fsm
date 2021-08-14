@@ -180,6 +180,53 @@ Testing with coverage: `go test ./test/ -v -coverprofile=cover.out -coverpkg=.`
 
 Testing with tool: `go tool cover -html=$PWD/cover.out -o $PWD/cover.html`
 
+## Usage
+
+```GO
+package main
+
+import (
+	"fmt"
+	"log"
+
+	fsm "github.com/lemenendez/fsm"
+)
+
+func main() {
+	f := fsm.NewFSM("My Machine")
+	f.AddState("ACTIVE")
+	f.AddState("INACTIVE")
+
+	f.AddTrans("INACTIVE", "ACTIVE", "UP")
+	f.AddTrans("ACTIVE", "INACTIVE", "DOWN")
+
+	f.Init("INACTIVE")
+
+	fmt.Print(f.GetTrans())
+
+	myFunc := func(pre string, cur string, action string) {
+		fmt.Printf("Previous State:%v, New State:%v, Action:%v\n", pre, cur, action)
+	}
+
+	err := f.Exec("UP", "ACTIVE", myFunc)
+
+	if err != nil {
+		log.Fatal(err)
+	}
+
+}
+```
+
+Output:
+```bash
+Transitions My Machine:
+UP (INACTIVE) -> (ACTIVE)
+DOWN (ACTIVE) -> (INACTIVE)
+Previous State:INACTIVE, New State:ACTIVE, Action:UP
+```
+
+
+
 ## Math Definition
 
 A finite automaton M is defined by a 5-tuple (Σ, Q, q 0 , F, δ), where
