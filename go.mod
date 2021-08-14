@@ -1,3 +1,3 @@
 module github.com/lemenendez/fsm
 
-go 1.16
+go 1.13
