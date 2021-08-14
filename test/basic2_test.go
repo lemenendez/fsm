@@ -14,11 +14,17 @@ func TestTransDups(t *testing.T) {
 
 	f := fsm.NewFSM("BASIC")
 
-	f.AddState(ACTIVE)
-	f.AddState(INACTIVE)
+	err := f.AddState(ACTIVE)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	err = f.AddState(INACTIVE)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
 
 	f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
-	err := f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
+	err = f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
 
 	if err == nil {
 		t.Errorf("should error dup transition")
