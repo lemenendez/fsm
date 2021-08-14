@@ -17,21 +17,42 @@ func NewPlan(plan string) (*Plan, error) {
 
 	f := fsm.NewFSM("SAAS Account State V1.0")
 
-	f.AddState("TRIAL")
-	f.AddState("BASIC")
-	f.AddState("PREMIUM")
+	err := f.AddState("TRIAL")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddState("BASIC")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddState("PREMIUM")
+	if err != nil {
+		return nil, err
+	}
 
-	f.AddTrans("TRIAL", "BASIC", "UPGRATE")
-	f.AddTrans("TRIAL", "PREMIUM", "UPGRATE")
-	f.AddTrans("BASIC", "PREMIUM", "UPGRATE")
-	f.AddTrans("PREMIUM", "BASIC", "DOWNGRATE")
+	err = f.AddTrans("TRIAL", "BASIC", "UPGRATE")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddTrans("TRIAL", "PREMIUM", "UPGRATE")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddTrans("BASIC", "PREMIUM", "UPGRATE")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddTrans("PREMIUM", "BASIC", "DOWNGRATE")
+	if err != nil {
+		return nil, err
+	}
 
 	c := &Plan{
 		Id:    0,
 		Name:  "Standard",
 		State: f,
 	}
-	err := f.Init(plan)
+	err = f.Init(plan)
 	if err == nil {
 		return c, nil
 	}
@@ -42,26 +63,59 @@ func NewPlan2(plan string) (*Plan, error) {
 
 	f := fsm.NewFSM("SAAS Account State V2.0")
 
-	f.AddState("TRIAL")
-	f.AddState("BASIC")
-	f.AddState("PREMIUM")
-	f.AddState("GOLD")
+	err := f.AddState("TRIAL")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddState("BASIC")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddState("PREMIUM")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddState("GOLD")
+	if err != nil {
+		return nil, err
+	}
 
-	f.AddTrans("TRIAL", "BASIC", "UPGRATE")
-	f.AddTrans("TRIAL", "PREMIUM", "UPGRATE")
-	f.AddTrans("TRIAL", "GOLD", "UPGRATE")
+	err = f.AddTrans("TRIAL", "BASIC", "UPGRATE")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddTrans("TRIAL", "PREMIUM", "UPGRATE")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddTrans("TRIAL", "GOLD", "UPGRATE")
+	if err != nil {
+		return nil, err
+	}
 
-	f.AddTrans("BASIC", "PREMIUM", "UPGRATE")
-	f.AddTrans("PREMIUM", "BASIC", "DOWNGRATE")
-	f.AddTrans("GOLD", "PREMIUM", "DOWNGRATE")
-	f.AddTrans("GOLD", "BASIC", "DOWNGRATE")
+	err = f.AddTrans("BASIC", "PREMIUM", "UPGRATE")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddTrans("PREMIUM", "BASIC", "DOWNGRATE")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddTrans("GOLD", "PREMIUM", "DOWNGRATE")
+	if err != nil {
+		return nil, err
+	}
+	err = f.AddTrans("GOLD", "BASIC", "DOWNGRATE")
+	if err != nil {
+		return nil, err
+	}
 
 	c := &Plan{
 		Id:    0,
 		Name:  "Standard",
 		State: f,
 	}
-	err := f.Init(plan)
+	err = f.Init(plan)
 	if err == nil {
 		return c, nil
 	}

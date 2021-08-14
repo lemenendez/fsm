@@ -39,11 +39,22 @@ func TestAddTransitions(t *testing.T) {
 
 	f := fsm.NewFSM("BASIC")
 
-	f.AddState(ACTIVE)
-	f.AddState(INACTIVE)
-
-	f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
-	f.AddTrans(INACTIVE, ACTIVE, DEACTIVATE)
+	err := f.AddState(ACTIVE)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	err = f.AddState(INACTIVE)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	err = f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
+	err = f.AddTrans(INACTIVE, ACTIVE, DEACTIVATE)
+	if err != nil {
+		t.Errorf(err.Error())
+	}
 }
 
 func TestWrongNames(t *testing.T) {

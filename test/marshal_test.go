@@ -71,7 +71,7 @@ func TestBasic3StatesJson(t *testing.T) {
 		err = f2.Exec(UPGRATE, BASIC, myFunc)
 		if err != nil {
 			t.Logf(err.Error())
-			t.Errorf("It should should works")
+			t.Errorf("It should work")
 		}
 	}
 }
@@ -81,7 +81,7 @@ func TestBasic3StatesJsonUnmarshal1(t *testing.T) {
 	var f fsm.FSM
 	err := json.Unmarshal(b, &f)
 	if err == nil {
-		t.Errorf("Id must be integer not string")
+		t.Errorf("json is not valid fsm, it should errored")
 	}
 
 }
