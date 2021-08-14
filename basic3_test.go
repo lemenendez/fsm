@@ -1,9 +1,7 @@
-package test
+package fsm
 
 import (
 	"testing"
-
-	fsm "github.com/lemenendez/fsm"
 )
 
 func TestSimpleEnableDisableActions(t *testing.T) {
@@ -12,7 +10,7 @@ func TestSimpleEnableDisableActions(t *testing.T) {
 	const ENABLE = "ENABLE"
 	const DISABLE = "DISABLE"
 
-	f := fsm.NewFSM("Basic Disabled/Enabled")
+	f := NewFSM("Basic Disabled/Enabled")
 	f.AddState(DISABLED)
 	f.AddState(ENABLED)
 	f.Init(DISABLED)

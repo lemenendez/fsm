@@ -1,21 +1,19 @@
-package test
+package fsm
 
 import (
 	"testing"
-
-	fsm "github.com/lemenendez/fsm"
 )
 
 type Plan struct {
 	Id    int32
 	Name  string
-	State *fsm.FSM
+	State *FSM
 	t     *testing.T
 }
 
 func NewPlan(plan string) (*Plan, error) {
 
-	f := fsm.NewFSM("SAAS Account State V1.0")
+	f := NewFSM("SAAS Account State V1.0")
 
 	err := f.AddState("TRIAL")
 	if err != nil {
@@ -61,7 +59,7 @@ func NewPlan(plan string) (*Plan, error) {
 
 func NewPlan2(plan string) (*Plan, error) {
 
-	f := fsm.NewFSM("SAAS Account State V2.0")
+	f := NewFSM("SAAS Account State V2.0")
 
 	err := f.AddState("TRIAL")
 	if err != nil {
@@ -183,25 +181,3 @@ func TestObject3(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 }
-
-/*
-func TestMigration1(t *testing.T) {
-	plan1, err := NewPlan("TRIAL")
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-	plan1.t = t
-	plan2, err := NewPlan2("PREMIUM")
-	if err != nil {
-		t.Errorf(err.Error())
-	}
-
-	plan2.t = t
-
-	if plan1.Upgrade("PREMIUM") {
-		t.Logf("New State:%v", plan1.State.GetState())
-	} else {
-		t.Errorf("cannot updagrade")
-	}
-}
-*/

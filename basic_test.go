@@ -1,9 +1,7 @@
-package test
+package fsm
 
 import (
 	"testing"
-
-	fsm "github.com/lemenendez/fsm"
 )
 
 func TestCheckDupState(t *testing.T) {
@@ -11,7 +9,7 @@ func TestCheckDupState(t *testing.T) {
 	const ACTIVE = "ACTIVE"
 	const INACTIVE = "INACTIVE"
 
-	f := fsm.NewFSM("BASIC")
+	f := NewFSM("BASIC")
 
 	err := f.AddState(ACTIVE)
 	if err != nil {
@@ -37,7 +35,7 @@ func TestAddTransitions(t *testing.T) {
 	const ACTIVATE = "ACTIVATE"
 	const DEACTIVATE = "DEACTIVATE"
 
-	f := fsm.NewFSM("BASIC")
+	f := NewFSM("BASIC")
 
 	err := f.AddState(ACTIVE)
 	if err != nil {
@@ -68,7 +66,7 @@ func TestWrongNames(t *testing.T) {
 	const ACTIVE = "ACTIVE"
 	const DEACTIVATE = "DEACTIVATE"
 
-	f := fsm.NewFSM("BASIC")
+	f := NewFSM("BASIC")
 
 	f.AddState(ACTIVE)
 	f.AddState(INACTIVE)
@@ -122,7 +120,7 @@ func TestGetName(t *testing.T) {
 	const ACTIVATE = "ACTIVATE"
 	const DEACTIVATE = "DEACTIVATE"
 
-	f := fsm.NewFSM("BASIC")
+	f := NewFSM("BASIC")
 
 	f.AddState(ACTIVE)
 	f.AddState(INACTIVE)
@@ -136,7 +134,7 @@ func TestGetName(t *testing.T) {
 }
 
 func TestExecWithEmptyStates(t *testing.T) {
-	f := fsm.NewFSM("BASIC")
+	f := NewFSM("BASIC")
 
 	myFunc := func(pre string, cur string, action string) {
 		t.Logf("Previous State:%v, New State:%v, Action:%v", pre, cur, action)
@@ -151,7 +149,7 @@ func TestExecWithEmptyStates(t *testing.T) {
 }
 
 func TestExecWithEmptyTrans(t *testing.T) {
-	f := fsm.NewFSM("BASIC")
+	f := NewFSM("BASIC")
 
 	f.AddState("ACTIVE")
 	f.AddState("INACTIVE")

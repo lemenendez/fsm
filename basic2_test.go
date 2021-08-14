@@ -1,9 +1,7 @@
-package test
+package fsm
 
 import (
 	"testing"
-
-	fsm "github.com/lemenendez/fsm"
 )
 
 func TestTransDups(t *testing.T) {
@@ -12,7 +10,7 @@ func TestTransDups(t *testing.T) {
 	const INACTIVE = "INACTIVE"
 	const ACTIVATE = "ACTIVATE"
 
-	f := fsm.NewFSM("BASIC")
+	f := NewFSM("BASIC")
 
 	err := f.AddState(ACTIVE)
 	if err != nil {
@@ -41,7 +39,7 @@ func TestBasic(t *testing.T) {
 	const ACTIVE = "ACTIVE"
 	const INACTIVE = "INACTIVE"
 
-	fsm := fsm.NewFSM("BASIC ACTIVE/INACTIVE")
+	fsm := NewFSM("BASIC ACTIVE/INACTIVE")
 
 	fsm.AddState(ACTIVE)
 	fsm.AddState(INACTIVE)
@@ -61,7 +59,7 @@ func TestBasicTransition(t *testing.T) {
 	const ACTIVATE = "ACTIVATE"
 	const DEACTIVATE = "DEACTIVATE"
 
-	fsm := fsm.NewFSM("BASIC")
+	fsm := NewFSM("BASIC")
 
 	fsm.AddState(ACTIVE)
 	fsm.AddState(INACTIVE)
@@ -82,7 +80,7 @@ func TestBasicTransition(t *testing.T) {
 }
 
 func TestBasic3States(t *testing.T) {
-	fsm := fsm.NewFSM("Three States")
+	f := NewFSM("Three States")
 
 	const TRIAL = "TRIAL"
 	const BASIC = "BASIC"
@@ -91,29 +89,28 @@ func TestBasic3States(t *testing.T) {
 	const DOWNGRATE = "DOWNGRATE"
 	const NON_EXISTING = "NONEXISTING"
 
-	fsm.AddState(TRIAL)
-	fsm.AddState(BASIC)
-	fsm.AddState(PREMIUM)
+	f.AddState(TRIAL)
+	f.AddState(BASIC)
+	f.AddState(PREMIUM)
 
-	fsm.AddTrans(TRIAL, BASIC, UPGRATE)
-	fsm.AddTrans(TRIAL, PREMIUM, UPGRATE)
-	fsm.AddTrans(BASIC, PREMIUM, UPGRATE)
-	fsm.AddTrans(PREMIUM, BASIC, DOWNGRATE)
+	f.AddTrans(TRIAL, BASIC, UPGRATE)
+	f.AddTrans(TRIAL, PREMIUM, UPGRATE)
+	f.AddTrans(BASIC, PREMIUM, UPGRATE)
+	f.AddTrans(PREMIUM, BASIC, DOWNGRATE)
 
-	trans := fsm.GetTrans()
+	trans := f.GetTrans()
 
 	t.Log(trans)
 
 	var err error
 
-	err = fsm.AddTrans(NON_EXISTING, PREMIUM, "DUMMY_ACTION")
+	err = f.AddTrans(NON_EXISTING, PREMIUM, "DUMMY_ACTION")
 
 	if err == nil {
 		t.Errorf("SHOULD not allow adding a transtion FROM a non loaded/non existing state")
 	}
 
-	err = fsm.AddTrans(BASIC, NON_EXISTING, "DUMMY_ACTION")
-	//t.Log(err)
+	err = f.AddTrans(BASIC, NON_EXISTING, "DUMMY_ACTION")
 	if err == nil {
 		t.Errorf("SHOULD not allow adding a transtion TO a non loaded/non existing state")
 	}
@@ -122,31 +119,31 @@ func TestBasic3States(t *testing.T) {
 		t.Logf("Previous State:%v, New State:%v, Action:%v", pre, cur, action)
 	}
 
-	err = fsm.Init(TRIAL)
+	err = f.Init(TRIAL)
 	if err != nil {
 		t.Errorf("TRIAL STATE SHOULD EXISTS")
 	}
 
-	err = fsm.Exec(UPGRATE, BASIC, myFunc)
+	err = f.Exec(UPGRATE, BASIC, myFunc)
 
 	if err != nil {
 		t.Errorf(err.Error())
 		t.Errorf("SHOULD ALLOW TRIAL->BASIC")
 	}
 
-	err = fsm.Exec(DOWNGRATE, TRIAL, myFunc)
+	err = f.Exec(DOWNGRATE, TRIAL, myFunc)
 
 	if err == nil {
 		t.Errorf("SHOULD NOT ALLOW DOWNGRADE BASIC->TRIAL")
 	}
 
-	err = fsm.Exec(UPGRATE, PREMIUM, myFunc)
+	err = f.Exec(UPGRATE, PREMIUM, myFunc)
 
 	if err != nil {
 		t.Errorf("SHOULD ALLOW BASIC->PREMIUM")
 	}
 
-	err = fsm.Init("NOT_LOADED")
+	err = f.Init("NOT_LOADED")
 	if err == nil {
 		t.Errorf("SHOLD NOT ALLOW NON EXISTING / NOT LOADED STATUS")
 	}
