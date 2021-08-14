@@ -1,1 +1,0 @@
-{"Name":"Customer Plan","Current":"TRIAL","States":[{"Name":"TRIAL"},{"Name":"BASIC"},{"Name":"PREMIUM"}],"Transitions":[{"From":"TRIAL","To":"BASIC","Action":"UPGRATE"},{"From":"TRIAL","To":"PREMIUM","Action":"UPGRATE"},{"From":"BASIC","To":"PREMIUM","Action":"UPGRATE"},{"From":"PREMIUM","To":"BASIC","Action":"DOWNGRATE"}]}
