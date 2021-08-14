@@ -72,26 +72,9 @@ t.Log(f.GetTrans())
 
 ### SaaS Plan
 
-![A test image](docs/README.png)
+![A test image](example.png)
 
 A user starts in __Trial__, __Basic__ or __Premium__. Once in __Basic__ can *Upgrade* to __Premium__. Once in __Premium__ can *Downgrade* to __Basic__. In __Trial__ can *upgrade* to __Basic__ or __Premium__. For this example we're not going to use the __Expired__ state.
-
-<!--
-```
-@startuml
-[*] --> Trial
-[*] --> Basic
-[*] --> Premium
-Trial --> [*]
-Trial -> Basic
-Trial -> Premium
-Basic -> Premium
-Premium -> Basic
-Premium --> [*]
-Basic --> [*]
-@enduml
-```
--->
 
 Define a Plan struct:
 
@@ -206,6 +189,3 @@ A finite automaton M is defined by a 5-tuple (Σ, Q, q 0 , F, δ), where
 - q 0 ∈ Q is the start state of M
 - F ⊆ Q is the set of final states of M
 - δ : Q × Σ → Q is the transition function
-
-Refer to the [fsm doc](docs/fsm-notes.pdf)
-
