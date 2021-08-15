@@ -176,7 +176,7 @@ Now finally we use it. We use *NewPlan* funcion to create and also to initilize 
 
 `go test ./test/ -v`
 
-Testing with coverage: `go test ./test/ -v -coverprofile=cover.out -coverpkg=.`
+Testing with coverage: `go test -v -coverprofile=cover.out -coverpkg=.`
 
 Testing with tool: `go tool cover -html=$PWD/cover.out -o $PWD/cover.html`
 

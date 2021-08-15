@@ -18,20 +18,20 @@ func TestBasic3StatesJson(t *testing.T) {
 
 	err := f.AddState(TRIAL)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 	err = f.AddState(BASIC)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 	err = f.AddState(PREMIUM)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 
 	err = f.AddTrans(TRIAL, BASIC, UPGRATE)
 	if err != nil {
-		t.Errorf(err.Error())
+		t.Fatal(err)
 	}
 	err = f.AddTrans(TRIAL, PREMIUM, UPGRATE)
 	if err != nil {
@@ -85,7 +85,7 @@ func TestBasic3StatesJsonUnmarshal1(t *testing.T) {
 }
 
 func TestBasic3StatesJsonUnmarshal2(t *testing.T) {
-	b := []byte(`{"Name":"Customer Plan Status","Current":"TRIAL","States":[{"Name":"TRIAL"},{"Name":"BASIC"},{"Name":"PREMIUM"}],"Transitions":[{"From":"TRIAL","To":"BASIC","Action":"UPGRATE"},{"From":"TRIAL","To":"PREMIUM","Action":"UPGRATE"},{"From":"BASIC","To":"PREMIUM","Action":"UPGRATE"},{"From":"PREMIUM","To":"BASIC","Action":"DOWNGRATE"}]}`)
+	b := []byte(`{"Name":"Customer Plan Status","Current":"TRIAL","States":["TRIAL","BASIC","PREMIUM"],"Transitions":[{"From":"TRIAL","To":"BASIC","Action":"UPGRATE"},{"From":"TRIAL","To":"PREMIUM","Action":"UPGRATE"},{"From":"BASIC","To":"PREMIUM","Action":"UPGRATE"},{"From":"PREMIUM","To":"BASIC","Action":"DOWNGRATE"}]}`)
 	var f FSM
 	err := json.Unmarshal(b, &f)
 	if err != nil {
