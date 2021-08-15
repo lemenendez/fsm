@@ -4,14 +4,14 @@ import (
 	"testing"
 )
 
-type Plan struct {
+type plan struct {
 	Id    int32
 	Name  string
 	State *FSM
 	t     *testing.T
 }
 
-func NewPlan(plan string) (*Plan, error) {
+func NewPlan(planstatus string) (*plan, error) {
 
 	f := NewFSM("SAAS Account State V1.0")
 
@@ -45,19 +45,19 @@ func NewPlan(plan string) (*Plan, error) {
 		return nil, err
 	}
 
-	c := &Plan{
+	c := &plan{
 		Id:    0,
 		Name:  "Standard",
 		State: f,
 	}
-	err = f.Init(plan)
+	err = f.Init(planstatus)
 	if err == nil {
 		return c, nil
 	}
 	return nil, err
 }
 
-func NewPlan2(plan string) (*Plan, error) {
+func NewPlan2(planName string) (*plan, error) {
 
 	f := NewFSM("SAAS Account State V2.0")
 
@@ -108,23 +108,23 @@ func NewPlan2(plan string) (*Plan, error) {
 		return nil, err
 	}
 
-	c := &Plan{
+	c := &plan{
 		Id:    0,
 		Name:  "Standard",
 		State: f,
 	}
-	err = f.Init(plan)
+	err = f.Init(planName)
 	if err == nil {
 		return c, nil
 	}
 	return nil, err
 }
 
-func (a *Plan) stateTransitionHandler(pre string, cur string, action string) {
+func (a *plan) stateTransitionHandler(pre string, cur string, action string) {
 	a.t.Logf("Previous State:%v, New State:%v, Action:%v", pre, cur, action)
 }
 
-func (a *Plan) Upgrade(name string) bool {
+func (a *plan) Upgrade(name string) bool {
 	err := a.State.Exec("UPGRATE", name, a.stateTransitionHandler)
 	if err != nil {
 		a.t.Logf(err.Error())
@@ -132,7 +132,7 @@ func (a *Plan) Upgrade(name string) bool {
 	return err == nil
 }
 
-func (a *Plan) Downgrate(name string) bool {
+func (a *plan) Downgrate(name string) bool {
 	err := a.State.Exec("DOWNGRATE", name, a.stateTransitionHandler)
 	if err != nil {
 		a.t.Logf(err.Error())

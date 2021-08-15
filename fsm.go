@@ -229,10 +229,10 @@ func (f *FSM) MarshalJSON() ([]byte, error) {
 		trans = append(trans, newtran)
 	}
 	return json.Marshal(&struct {
-		Name        string   `json:Name`
-		Current     string   `json:Current`
-		States      []*State `json:States`
-		Transitions []tran   `json:Transitions`
+		Name        string   `json:"Name"`
+		Current     string   `json:"Current"`
+		States      []*State `json:"States"`
+		Transitions []tran   `json:"Transitions"`
 	}{
 		Name:        f.Name,
 		Current:     f.GetState(),
@@ -248,10 +248,10 @@ func (f *FSM) UnmarshalJSON(data []byte) error {
 	}
 
 	temp := struct {
-		Name        string   `json:Name`
-		Current     string   `json:Current`
-		States      []*State `json:States`
-		Transitions []tran   `json:Transitions`
+		Name        string   `json:"Name"`
+		Current     string   `json:"Current"`
+		States      []*State `json:"States"`
+		Transitions []tran   `json:"Transitions"`
 	}{}
 	if err := json.Unmarshal(data, &temp); err != nil {
 		return err
