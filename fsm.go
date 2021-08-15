@@ -1,4 +1,7 @@
-// Package fsm implements a simple Finite State Machine. A Finite State Machine has multiple use cases, the state of every entity for example a User in a system. Another example is the state of a Tenant for a Saas company, the state of the executing of a long-running task, or the state of a money transfer.
+// fsm implements a simple Finite State Machine.
+// A Finite State Machine has multiple use cases, the state of a User in a system,
+// the state of a Tenant for a Saas company, the state of the execution of a long-running task,
+// or the state of a money transfer.
 package fsm
 
 import (
@@ -8,28 +11,25 @@ import (
 	"strings"
 )
 
-type Err string
-
-const (
-	StateNotFound   Err = "STATE_NOT_FOUND"
-	StateAlExists       = "STATE_ALREADY_EXISTS"
-	TransNotAllowed     = "TRANSITION_NOT_ALLOWED"
-	TransAlExists       = "TRANSITION_ALREADY_EXISTS"
-	InvalidName         = "INVALID NAME"
-	ExecNotAllowed      = "EXECUTION_NOT_ALLOWED"
-)
+var ErrStateNotFound = errors.New("state not found")
+var ErrStateAlExists = errors.New("state already exists")
+var ErrTransNotAllowed = errors.New("transition not allowed")
+var ErrTransAlExists = errors.New("transition already exists")
+var ErrInvalidName = errors.New("invalid name")
+var ErrExecNotAllowed = errors.New("execution not allowed")
 
 const ready = "READY"
 const notReady = "NOT_READY"
 const check = "CHECK"
 
-//It represents a unique state
+// It represents a unique state
 type State struct {
-	// State's name
 	Name string
 }
 
-//A possible transition from an estate A (src) to state B (des).For a given FSM the combination of: src,des and name must be unique. The code must enforce that rule all the time.
+// A possible transition from an estate A (src) to state B (des).
+// For a given FSM the combination of: src,des and name must be unique.
+// The code must enforce that rule all the time.
 type transition struct {
 	// pointer to the source state (A)
 	src *State
@@ -43,7 +43,7 @@ func (t transition) String() string {
 	return fmt.Sprintf("%v (%v) -> (%v)", t.name, t.src.Name, t.des.Name)
 }
 
-// It represents a Finite State Machine. The fields: Id, UUID, and Name have meaning only to the user of the package.
+// It represents a Finite State Machine.
 type FSM struct {
 	Id   int32
 	Name string
@@ -81,7 +81,7 @@ func createIntState() *FSM {
 	f := &FSM{
 		Id:     0,
 		Name:   "FSM State",
-		states: make(map[string]*State, 0),
+		states: make(map[string]*State),
 		adj:    make([]transition, 0),
 		isInt:  true,
 	}
@@ -100,7 +100,7 @@ func NewFSM(name string) *FSM {
 	f := &FSM{
 		Id:     0,
 		Name:   name,
-		states: make(map[string]*State, 0),
+		states: make(map[string]*State),
 		adj:    make([]transition, 0),
 		state:  createIntState(),
 	}
@@ -109,11 +109,11 @@ func NewFSM(name string) *FSM {
 
 func (p *FSM) AddState(name string) error {
 	if !valName(name) {
-		return errors.New(string(InvalidName))
+		return ErrInvalidName
 	}
 	state := p.findStateByName(name)
 	if state != nil {
-		return errors.New(string(StateAlExists))
+		return ErrStateAlExists
 	}
 	nState := State{
 		Name: name,
@@ -133,22 +133,22 @@ func (p FSM) findStateByName(name string) *State {
 
 func (p *FSM) AddTrans(src string, des string, name string) error {
 	if !valName(name) {
-		return errors.New(string(InvalidName))
+		return ErrInvalidName
 	}
 	srcState := p.findStateByName(src)
 	if srcState == nil {
-		return errors.New(string(StateNotFound))
+		return ErrStateNotFound
 	}
 	desState := p.findStateByName(des)
 	if desState == nil {
-		return errors.New(string(StateNotFound))
+		return ErrStateNotFound
 	}
 
 	for i := 0; i < len(p.adj); i++ {
 		if p.adj[i].src == srcState &&
 			p.adj[i].des == desState &&
 			p.adj[i].name == name {
-			return errors.New(string(TransAlExists))
+			return ErrTransAlExists
 		}
 	}
 	t := transition{
@@ -173,7 +173,7 @@ func (p *FSM) GetTrans() string {
 func (p *FSM) Init(name string) error {
 	state := p.findStateByName(name)
 	if state == nil {
-		return errors.New(string(StateNotFound))
+		return ErrStateNotFound
 	}
 	p.current = state
 	return nil
@@ -189,7 +189,7 @@ func (f *FSM) Exec(action string, des string, callback func(previous string, new
 	desState := f.findStateByName(des)
 
 	if desState == nil {
-		return errors.New(string(StateNotFound))
+		return ErrStateNotFound
 	}
 
 	for i := 0; i < len(f.adj); i++ {
@@ -206,7 +206,7 @@ func (f *FSM) Exec(action string, des string, callback func(previous string, new
 		}
 	}
 
-	return errors.New(string(ExecNotAllowed))
+	return ErrExecNotAllowed
 }
 
 func (f *FSM) MarshalJSON() ([]byte, error) {
@@ -263,7 +263,7 @@ func (f *FSM) UnmarshalJSON(data []byte) error {
 		state: createIntState(),
 	}
 
-	f.states = make(map[string]*State, 0)
+	f.states = make(map[string]*State)
 
 	for i := 0; i < len(temp.States); i++ {
 		f.states[temp.States[i].Name] = temp.States[i]
@@ -272,16 +272,16 @@ func (f *FSM) UnmarshalJSON(data []byte) error {
 	for i := 0; i < len(temp.Transitions); i++ {
 
 		if !valName(temp.Transitions[i].Action) {
-			return errors.New(string(InvalidName))
+			return ErrInvalidName
 		}
 
 		srcState := f.findStateByName(temp.Transitions[i].From)
 		if srcState == nil {
-			return errors.New(string(StateNotFound))
+			return ErrStateNotFound
 		}
 		desState := f.findStateByName(temp.Transitions[i].To)
 		if desState == nil {
-			return errors.New(string(StateNotFound))
+			return ErrStateNotFound
 		}
 		t := transition{
 			src:  srcState,
