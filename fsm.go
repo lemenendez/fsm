@@ -8,6 +8,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"log"
 	"strings"
 )
 
@@ -27,20 +28,19 @@ const check = "CHECK"
 // The code must enforce that rule all the time.
 type transition struct {
 	// source state
-	src string
+	From string `json:"From"`
 	// destination state)
-	des string
+	To string `json:"To"`
 	// transition's name
-	name string
+	Action string `json:"Action"`
 }
 
 func (t transition) String() string {
-	return fmt.Sprintf("%v (%v) -> (%v)", t.name, t.src, t.des)
+	return fmt.Sprintf("%v (%v) -> (%v)", t.From, t.To, t.Action)
 }
 
 // It represents a Finite State Machine.
 type FSM struct {
-	Id   int32
 	Name string
 	// set of states
 	states []string
@@ -69,10 +69,9 @@ func (f *FSM) validate() {
 	f.state.Exec(check, notReady, nil)
 }
 
-// It creates a FSM for internal use
+// createIntState creates a FSM for internal use
 func createIntState() *FSM {
 	f := &FSM{
-		Id:     0,
 		Name:   "FSM State",
 		states: make([]string, 0),
 		adj:    make([]transition, 0),
@@ -86,9 +85,10 @@ func createIntState() *FSM {
 	return f
 }
 
+// NewFSM creates a pointer to a brand new FSM
+// It initializes its internal state
 func NewFSM(name string) *FSM {
 	f := &FSM{
-		Id:     0,
 		Name:   name,
 		states: make([]string, 0),
 		adj:    make([]transition, 0),
@@ -97,6 +97,9 @@ func NewFSM(name string) *FSM {
 	return f
 }
 
+// AddState adds a new state into the fsm
+// It validates state name prior to add it
+// It validates state is unique
 func (f *FSM) AddState(name string) error {
 	if !valName(name) {
 		return ErrInvalidName
@@ -117,30 +120,33 @@ func (p FSM) existsState(name string) bool {
 	return false
 }
 
-func (p *FSM) AddTrans(src string, des string, name string) error {
+// AdTrans adds a new transition between two states
+// It validates transition name prior to add it
+// It validates transition is unique
+func (f *FSM) AddTrans(src string, des string, name string) error {
 	if !valName(name) {
 		return ErrInvalidName
 	}
-	if !p.existsState(src) || !p.existsState(des) {
+	if !f.existsState(src) || !f.existsState(des) {
 		return ErrStateNotFound
 	}
 
-	for _, trans := range p.adj {
-		if trans.src == src &&
-			trans.des == des &&
-			trans.name == name {
+	for _, trans := range f.adj {
+		if trans.From == src &&
+			trans.To == des &&
+			trans.Action == name {
 			return ErrTransAlExists
 		}
 	}
-	t := transition{
-		src:  src,
-		des:  des,
-		name: name,
-	}
-	p.adj = append(p.adj, t)
+	f.adj = append(f.adj, transition{
+		From:   src,
+		To:     des,
+		Action: name,
+	})
 	return nil
 }
 
+// GetTrans returns the transitions string representation of fsm
 func (f *FSM) GetTrans() string {
 	builder := strings.Builder{}
 	builder.WriteString(fmt.Sprintf("Transitions %v:\n", f.Name))
@@ -150,11 +156,13 @@ func (f *FSM) GetTrans() string {
 	return builder.String()
 }
 
-func (p *FSM) Init(name string) error {
-	if !p.existsState(name) {
+// Init set the current state to the given state
+// It validates stte exists prior to set it to current
+func (p *FSM) Init(state string) error {
+	if !p.existsState(state) {
 		return ErrStateNotFound
 	}
-	p.current = name
+	p.current = state
 	return nil
 }
 
@@ -169,10 +177,10 @@ func (f *FSM) Exec(action string, des string, callback func(previous string, new
 		return ErrStateNotFound
 	}
 
-	for i := 0; i < len(f.adj); i++ {
-		if f.adj[i].src == f.current &&
-			f.adj[i].des == des &&
-			f.adj[i].name == action {
+	for _, adj := range f.adj {
+		if adj.From == f.current &&
+			adj.To == des &&
+			adj.Action == action {
 			// update the current state
 			previous := f.current
 			f.current = des
@@ -185,29 +193,60 @@ func (f *FSM) Exec(action string, des string, callback func(previous string, new
 	return ErrExecNotAllowed
 }
 
+func (t transition) MarshalJSON() ([]byte, error) {
+	return json.Marshal(&struct {
+		From   string `json:"From"`
+		To     string `json:"To"`
+		Action string `json:"Action"`
+	}{
+		From:   t.From,
+		To:     t.To,
+		Action: t.Action,
+	})
+}
+
+func (t *transition) UnmarshalJSON(data []byte) error {
+	temp := struct {
+		From   string `json:"From"`
+		To     string `json:"To"`
+		Action string `json:"Action"`
+	}{}
+	if err := json.Unmarshal(data, &temp); err != nil {
+		return err
+	}
+
+	t.From = temp.From
+	t.To = temp.To
+	t.Action = temp.Action
+
+	/*t = &transition{
+		From:   temp.From,
+		To:     temp.To,
+		Action: temp.Action,
+	}*/
+	// log.Print(t) is ok
+	return nil
+}
+
 func (f *FSM) MarshalJSON() ([]byte, error) {
 	var states []string
 
 	states = append(states, f.states...)
 
-	type tran struct {
-		From, To, Action string
-	}
-
-	trans := make([]tran, 0)
-	for i := 0; i < len(f.adj); i++ {
-		newtran := tran{
-			From:   f.adj[i].src,
-			To:     f.adj[i].des,
-			Action: f.adj[i].name,
+	trans := make([]transition, 0)
+	for _, adj := range f.adj {
+		newtran := transition{
+			From:   adj.From,
+			To:     adj.To,
+			Action: adj.Action,
 		}
 		trans = append(trans, newtran)
 	}
 	return json.Marshal(&struct {
-		Name        string   `json:"Name"`
-		Current     string   `json:"Current"`
-		States      []string `json:"States"`
-		Transitions []tran   `json:"Transitions"`
+		Name        string       `json:"Name"`
+		Current     string       `json:"Current"`
+		States      []string     `json:"States"`
+		Transitions []transition `json:"Transitions"`
 	}{
 		Name:        f.Name,
 		Current:     f.GetState(),
@@ -217,30 +256,30 @@ func (f *FSM) MarshalJSON() ([]byte, error) {
 }
 
 func (f *FSM) UnmarshalJSON(data []byte) error {
-	type tran struct {
-		From, To, Action string
-	}
+	log.Print("unmarhsal.................")
 	temp := struct {
-		Name        string   `json:"Name"`
-		Current     string   `json:"Current"`
-		States      []string `json:"States"`
-		Transitions []tran   `json:"Transitions"`
+		Name        string       `json:"Name"`
+		Current     string       `json:"Current"`
+		States      []string     `json:"States"`
+		Transitions []transition `json:"Transitions"`
 	}{}
 	if err := json.Unmarshal(data, &temp); err != nil {
 		return err
 	}
-	f = &FSM{
-		Name:  temp.Name,
-		adj:   make([]transition, 0),
-		state: createIntState(),
-	}
+	f.Name = temp.Name
+	f.state = createIntState()
 	f.states = make([]string, 0)
+	f.adj = make([]transition, 0)
+
 	for _, val := range temp.States {
 		if !f.existsState(val) {
 			f.states = append(f.states, val)
 		}
 	}
+	// log.Print(temp.Transitions)
 	for _, trans := range temp.Transitions {
+		// log.Print(trans.name)
+		// log.Print(trans.Action)
 		if !valName(trans.Action) {
 			return ErrInvalidName
 		}
@@ -249,15 +288,16 @@ func (f *FSM) UnmarshalJSON(data []byte) error {
 		}
 
 		f.adj = append(f.adj, transition{
-			src:  trans.From,
-			des:  trans.To,
-			name: trans.Action,
+			From:   trans.From,
+			To:     trans.To,
+			Action: trans.Action,
 		})
 	}
 	err := f.Init(temp.Current)
 	if err != nil {
 		return err
 	}
+	//log.Print(f)
 	return nil
 }
 

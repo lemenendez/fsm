@@ -2,11 +2,31 @@ package fsm
 
 import (
 	"encoding/json"
-	"fmt"
+	"log"
 	"testing"
 )
 
-func TestBasic3StatesJson(t *testing.T) {
+func TestTransitionsMarshalUnmarshal(t *testing.T) {
+	trans := make([]transition, 0)
+	trans = append(trans, transition{
+		From:   "A",
+		To:     "B",
+		Action: "ATOB",
+	})
+	b, err := json.Marshal(trans)
+	t.Log(string(b))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var trans2 []transition
+	err = json.Unmarshal(b, &trans2)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Log(trans2)
+
+}
+func TestMarshalUnmarshal(t *testing.T) {
 
 	const TRIAL = "TRIAL"
 	const BASIC = "BASIC"
@@ -54,18 +74,23 @@ func TestBasic3StatesJson(t *testing.T) {
 
 	b, err := json.Marshal(f)
 	if err != nil {
-		fmt.Println(err)
-		return
+		log.Fatal(err)
 	}
+
+	// log.Printf("fsm %v", string(b))
 
 	var f2 FSM
 	err = json.Unmarshal(b, &f2)
+
+	if err != nil {
+		t.Fatal(err)
+	}
 
 	myFunc := func(pre string, cur string, action string) {
 		t.Logf("Previous State:%v, New State:%v, Action:%v", pre, cur, action)
 	}
 
-	if err != nil {
+	if err == nil {
 		err = f2.Exec(UPGRATE, BASIC, myFunc)
 		if err != nil {
 			t.Logf(err.Error())
@@ -74,7 +99,7 @@ func TestBasic3StatesJson(t *testing.T) {
 	}
 }
 
-func TestBasic3StatesJsonUnmarshal1(t *testing.T) {
+func TestInvalidUnmarshal(t *testing.T) {
 	b := []byte(`{"Id":"0","UUID":"642f24f0-132d-4413-80b9-0fc43408c302","Name":"Customer Plan Status","Current":"TRIAL","States":[{"Id":0,"UUID":"8d6afd9e-c260-4ef8-b678-0baa796b60cc","Name":"TRIAL"},{"Id":1,"UUID":"4b4fc77c-6319-4ebe-863c-ab46e7611d05","Name":"BASIC"},{"Id":2,"UUID":"c7560801-7ade-4a73-866b-fe8e0128d5b1","Name":"PREMIUM"}],"Transitions":[{"From":"8d6afd9e-c260-4ef8-b678-0baa796b60cc","To":"4b4fc77c-6319-4ebe-863c-ab46e7611d05","Action":"UPGRATE"},{"From":"8d6afd9e-c260-4ef8-b678-0baa796b60cc","To":"c7560801-7ade-4a73-866b-fe8e0128d5b1","Action":"UPGRATE"},{"From":"4b4fc77c-6319-4ebe-863c-ab46e7611d05","To":"c7560801-7ade-4a73-866b-fe8e0128d5b1","Action":"UPGRATE"},{"From":"c7560801-7ade-4a73-866b-fe8e0128d5b1","To":"4b4fc77c-6319-4ebe-863c-ab46e7611d05","Action":"DOWNGRATE"}]}`)
 	var f FSM
 	err := json.Unmarshal(b, &f)
@@ -84,7 +109,7 @@ func TestBasic3StatesJsonUnmarshal1(t *testing.T) {
 
 }
 
-func TestBasic3StatesJsonUnmarshal2(t *testing.T) {
+func TestUnmarshal(t *testing.T) {
 	b := []byte(`{"Name":"Customer Plan Status","Current":"TRIAL","States":["TRIAL","BASIC","PREMIUM"],"Transitions":[{"From":"TRIAL","To":"BASIC","Action":"UPGRATE"},{"From":"TRIAL","To":"PREMIUM","Action":"UPGRATE"},{"From":"BASIC","To":"PREMIUM","Action":"UPGRATE"},{"From":"PREMIUM","To":"BASIC","Action":"DOWNGRATE"}]}`)
 	var f FSM
 	err := json.Unmarshal(b, &f)
