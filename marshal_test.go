@@ -77,8 +77,6 @@ func TestMarshalUnmarshal(t *testing.T) {
 		log.Fatal(err)
 	}
 
-	// log.Printf("fsm %v", string(b))
-
 	var f2 FSM
 	err = json.Unmarshal(b, &f2)
 

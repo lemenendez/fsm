@@ -21,7 +21,10 @@ func TestTransDups(t *testing.T) {
 		t.Errorf(err.Error())
 	}
 
-	f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
+	err = f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
+	if err != nil {
+		t.Fail()
+	}
 	err = f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
 
 	if err == nil {
@@ -41,10 +44,16 @@ func TestBasic(t *testing.T) {
 
 	fsm := NewFSM("BASIC ACTIVE/INACTIVE")
 
-	fsm.AddState(ACTIVE)
-	fsm.AddState(INACTIVE)
+	err := fsm.AddState(ACTIVE)
+	if err != nil {
+		t.Fail()
+	}
+	err = fsm.AddState(INACTIVE)
+	if err != nil {
+		t.Fail()
+	}
 
-	err := fsm.Init(ACTIVE)
+	err = fsm.Init(ACTIVE)
 
 	if err != nil {
 		t.Errorf("ACTIVE STATE SHOULD EXISTS")
@@ -53,7 +62,7 @@ func TestBasic(t *testing.T) {
 }
 
 func TestBasicTransition(t *testing.T) {
-
+	var err error
 	const ACTIVE = "ACTIVE"
 	const INACTIVE = "INACTIVE"
 	const ACTIVATE = "ACTIVATE"
@@ -61,13 +70,22 @@ func TestBasicTransition(t *testing.T) {
 
 	fsm := NewFSM("BASIC")
 
-	fsm.AddState(ACTIVE)
-	fsm.AddState(INACTIVE)
-
-	fsm.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
-	fsm.AddTrans(INACTIVE, ACTIVE, DEACTIVATE)
-
-	var err error
+	err = fsm.AddState(ACTIVE)
+	if err != nil {
+		t.Fail()
+	}
+	err = fsm.AddState(INACTIVE)
+	if err != nil {
+		t.Fail()
+	}
+	err = fsm.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
+	if err != nil {
+		t.Fail()
+	}
+	err = fsm.AddTrans(INACTIVE, ACTIVE, DEACTIVATE)
+	if err != nil {
+		t.Fail()
+	}
 	err = fsm.Init(string(ACTIVE))
 	if err != nil {
 		t.Errorf("status should exists")
@@ -80,6 +98,7 @@ func TestBasicTransition(t *testing.T) {
 }
 
 func TestBasic3States(t *testing.T) {
+	var err error
 	f := NewFSM("Three States")
 
 	const TRIAL = "TRIAL"
@@ -89,20 +108,39 @@ func TestBasic3States(t *testing.T) {
 	const DOWNGRATE = "DOWNGRATE"
 	const NON_EXISTING = "NONEXISTING"
 
-	f.AddState(TRIAL)
-	f.AddState(BASIC)
-	f.AddState(PREMIUM)
+	err = f.AddState(TRIAL)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddState(BASIC)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddState(PREMIUM)
+	if err != nil {
+		t.Fail()
+	}
 
-	f.AddTrans(TRIAL, BASIC, UPGRATE)
-	f.AddTrans(TRIAL, PREMIUM, UPGRATE)
-	f.AddTrans(BASIC, PREMIUM, UPGRATE)
-	f.AddTrans(PREMIUM, BASIC, DOWNGRATE)
+	err = f.AddTrans(TRIAL, BASIC, UPGRATE)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddTrans(TRIAL, PREMIUM, UPGRATE)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddTrans(BASIC, PREMIUM, UPGRATE)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddTrans(PREMIUM, BASIC, DOWNGRATE)
+	if err != nil {
+		t.Fail()
+	}
 
 	trans := f.GetTrans()
 
 	t.Log(trans)
-
-	var err error
 
 	err = f.AddTrans(NON_EXISTING, PREMIUM, "DUMMY_ACTION")
 

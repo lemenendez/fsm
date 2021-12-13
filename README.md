@@ -174,11 +174,18 @@ Now finally we use it. We use *NewPlan* funcion to create and also to initilize 
 
 ### Testing
 
-`go test ./test/ -v`
+`go test -v`
 
 Testing with coverage: `go test -v -coverprofile=cover.out -coverpkg=.`
 
 Testing with tool: `go tool cover -html=$PWD/cover.out -o $PWD/cover.html`
+
+### Lint
+`# binary will be $(go env GOPATH)/bin/golangci-lint
+curl -sSfL https://raw.githubusercontent.com/golangci/golangci-lint/master/install.sh | sh -s -- -b $(go env GOPATH)/bin v1.43.0
+
+golangci-lint --version
+`
 
 ## Usage
 

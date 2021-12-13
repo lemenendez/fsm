@@ -7,15 +7,19 @@ package fsm
 import (
 	"errors"
 	"fmt"
+	"regexp"
 	"strings"
 )
 
-var ErrStateNotFound = errors.New("state not found")
+var ErrStateNotFound error = errors.New("state not found")
 var ErrStateAlExists = errors.New("state already exists")
 var ErrTransNotAllowed = errors.New("transition not allowed")
 var ErrTransAlExists = errors.New("transition already exists")
 var ErrInvalidName = errors.New("invalid name")
 var ErrExecNotAllowed = errors.New("execution not allowed")
+var ErrNotReady = errors.New("not ready")
+
+var exp = regexp.MustCompile(`^[A-Z]+(_?[A-Z])*$`)
 
 const ready = "READY"
 const notReady = "NOT_READY"
@@ -24,9 +28,9 @@ const check = "CHECK"
 // A transition from State A to State B
 // The combination of From, To, and Actions must be unique
 type transition struct {
-	From   string `json:"From"`
-	To     string `json:"To"`
-	Action string `json:"Action"`
+	From   string `json:"from"`
+	To     string `json:"to"`
+	Action string `json:"action"`
 }
 
 func (t transition) String() string {
@@ -36,7 +40,7 @@ func (t transition) String() string {
 // It represents a Finite State Machine.
 type FSM struct {
 	Name    string
-	states  []string
+	states  map[string]bool
 	adj     []transition
 	current string
 	// state is the internal fsm state
@@ -50,30 +54,30 @@ func (p *FSM) GetState() string {
 	return p.current
 }
 
-// validate actions
-func (f *FSM) validate() {
-	if len(f.states) > 0 &&
-		len(f.adj) > 0 &&
-		f.GetState() != ready {
-		f.state.Exec(check, ready, nil)
-		return
-	}
-	f.state.Exec(check, notReady, nil)
-}
-
 // createIntState creates a FSM for internal use
 func createIntState() *FSM {
+	var err error
 	f := &FSM{
 		Name:       "FSM State",
-		states:     make([]string, 0),
+		states:     make(map[string]bool),
 		adj:        make([]transition, 0),
 		isInternal: true,
 	}
-	f.AddState(ready)
-	f.AddState(notReady)
-	f.Init(notReady)
-	f.AddTrans(notReady, ready, check)
-	f.AddTrans(ready, notReady, check)
+	if err = f.AddState(ready); err != nil {
+		return nil
+	}
+	if err = f.AddState(notReady); err != nil {
+		return nil
+	}
+	if err = f.Init(notReady); err != nil {
+		return nil
+	}
+	if err = f.AddTrans(notReady, ready, check); err != nil {
+		return nil
+	}
+	if err = f.AddTrans(ready, notReady, check); err != nil {
+		return nil
+	}
 	return f
 }
 
@@ -81,10 +85,12 @@ func createIntState() *FSM {
 func NewFSM(name string) *FSM {
 	f := &FSM{
 		Name:   name,
-		states: make([]string, 0),
+		states: make(map[string]bool),
 		adj:    make([]transition, 0),
 		state:  createIntState(),
 	}
+	// set int state to not ready
+	f.state.current = notReady
 	return f
 }
 
@@ -95,20 +101,12 @@ func (f *FSM) AddState(name string) error {
 	if !isValidName(name) {
 		return ErrInvalidName
 	}
-	if f.existsState(name) {
+	if ok := f.states[name]; ok {
 		return ErrStateAlExists
 	}
-	f.states = append(f.states, name)
-	return nil
-}
 
-func (p FSM) existsState(name string) bool {
-	for _, value := range p.states {
-		if value == name {
-			return true
-		}
-	}
-	return false
+	f.states[name] = true
+	return nil
 }
 
 // AdTrans adds a new transition between two states
@@ -118,7 +116,10 @@ func (f *FSM) AddTrans(src string, des string, name string) error {
 	if !isValidName(name) {
 		return ErrInvalidName
 	}
-	if !f.existsState(src) || !f.existsState(des) {
+	if ok := f.states[src]; !ok {
+		return ErrStateNotFound
+	}
+	if ok := f.states[des]; !ok {
 		return ErrStateNotFound
 	}
 
@@ -134,6 +135,9 @@ func (f *FSM) AddTrans(src string, des string, name string) error {
 		To:     des,
 		Action: name,
 	})
+	if !f.isInternal {
+		f.state.current = ready
+	}
 	return nil
 }
 
@@ -148,23 +152,22 @@ func (f *FSM) GetTrans() string {
 }
 
 // Init set the current state to the given state
-// It validates stte exists prior to set it to current
-func (p *FSM) Init(state string) error {
-	if !p.existsState(state) {
+// It validates state exists prior to set it to current
+func (f *FSM) Init(state string) error {
+	if ok := f.states[state]; !ok {
 		return ErrStateNotFound
 	}
-	p.current = state
+	f.current = state
 	return nil
 }
 
 func (f *FSM) Exec(action string, des string, callback func(previous string, new string, action string)) error {
 	if !f.isInternal {
-		f.validate()
 		if f.state.current != ready {
-			return errors.New(string(notReady))
+			return ErrNotReady
 		}
 	}
-	if !f.existsState(des) {
+	if ok := f.states[des]; !ok {
 		return ErrStateNotFound
 	}
 
@@ -184,22 +187,32 @@ func (f *FSM) Exec(action string, des string, callback func(previous string, new
 }
 
 func isValidName(name string) bool {
-	const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZ_"
 	const MAX = 64
-
-	count := len(name)
-
-	if count == 0 || count > MAX {
+	if len(name) > MAX {
 		return false
 	}
-	for _, chr := range name {
-		if !strings.Contains(chars, string(chr)) {
-			return false
+	return exp.MatchString(name)
+}
+
+func New(name string, trans [][3]string) (*FSM, error) {
+	f := &FSM{
+		Name:   name,
+		states: make(map[string]bool),
+		adj:    make([]transition, 0),
+		state:  createIntState(),
+	}
+
+	for _, t := range trans {
+		if err := f.AddState(t[0]); err != nil && err != ErrStateAlExists {
+			return nil, err
+		}
+		if err := f.AddState(t[1]); err != nil && err != ErrStateAlExists {
+			return nil, err
+		}
+		err := f.AddTrans(t[0], t[1], t[2])
+		if err != nil {
+			return nil, err
 		}
 	}
-	last := len(name) - 1
-	if name[0] == '_' || name[last] == '_' {
-		return false
-	}
-	return true
+	return f, nil
 }

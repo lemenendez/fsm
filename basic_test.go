@@ -56,6 +56,8 @@ func TestAddTransitions(t *testing.T) {
 }
 
 func TestWrongNames(t *testing.T) {
+	var err error
+
 	const INVALIDNAME = " in valid 1 "
 	const INVALIDNAME2 = "_INVALID"
 	const INVALIDNAME3 = "INVALID_"
@@ -68,9 +70,15 @@ func TestWrongNames(t *testing.T) {
 
 	f := NewFSM("BASIC")
 
-	f.AddState(ACTIVE)
-	f.AddState(INACTIVE)
-	err := f.AddState(INVALIDNAME)
+	err = f.AddState(ACTIVE)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddState(INACTIVE)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddState(INVALIDNAME)
 	if err == nil {
 		t.Errorf("Should errored name is invalid")
 	}
@@ -95,8 +103,14 @@ func TestWrongNames(t *testing.T) {
 		t.Errorf("Should errored name is invalid")
 	}
 
-	f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
-	f.AddTrans(INACTIVE, ACTIVE, DEACTIVATE)
+	err = f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddTrans(INACTIVE, ACTIVE, DEACTIVATE)
+	if err != nil {
+		t.Fail()
+	}
 	err = f.AddTrans(INACTIVE, ACTIVE, INVALIDNAME)
 	if err == nil {
 		t.Errorf("Should errored name is invalid")
@@ -114,7 +128,7 @@ func TestWrongNames(t *testing.T) {
 }
 
 func TestGetName(t *testing.T) {
-
+	var err error
 	const ACTIVE = "ACTIVE"
 	const INACTIVE = "INACTIVE"
 	const ACTIVATE = "ACTIVATE"
@@ -122,14 +136,26 @@ func TestGetName(t *testing.T) {
 
 	f := NewFSM("BASIC")
 
-	f.AddState(ACTIVE)
-	f.AddState(INACTIVE)
-
-	f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
-	f.AddTrans(INACTIVE, ACTIVE, DEACTIVATE)
-
-	f.Init(INACTIVE)
-
+	err = f.AddState(ACTIVE)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddState(INACTIVE)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddTrans(ACTIVE, INACTIVE, ACTIVATE)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddTrans(INACTIVE, ACTIVE, DEACTIVATE)
+	if err != nil {
+		t.Fail()
+	}
+	err = f.Init(INACTIVE)
+	if err != nil {
+		t.Fail()
+	}
 	t.Log(f.GetState())
 }
 
@@ -149,18 +175,31 @@ func TestExecWithEmptyStates(t *testing.T) {
 }
 
 func TestExecWithEmptyTrans(t *testing.T) {
+	var err error
+
 	f := NewFSM("BASIC")
 
-	f.AddState("ACTIVE")
-	f.AddState("INACTIVE")
-	f.AddTrans("ACTIVE", "INACTIVE", "ACTIVATE")
-	f.Init("ACTIVE")
-
+	err = f.AddState("ACTIVE")
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddState("INACTIVE")
+	if err != nil {
+		t.Fail()
+	}
+	err = f.AddTrans("ACTIVE", "INACTIVE", "ACTIVATE")
+	if err != nil {
+		t.Fail()
+	}
+	err = f.Init("ACTIVE")
+	if err != nil {
+		t.Fail()
+	}
 	myFunc := func(pre string, cur string, action string) {
 		t.Logf("Previous State:%v, New State:%v, Action:%v", pre, cur, action)
 	}
 
-	err := f.Exec("DO", "SOME_MORE", myFunc)
+	err = f.Exec("DO", "SOME_MORE", myFunc)
 
 	if err == nil {
 		t.Errorf("It should failed: SOME_MORE does not exist")
